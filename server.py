@@ -56,16 +56,24 @@ class GetHandler(BaseHTTPRequestHandler):
 
 
     def getRenderedFile(self, inText):
-        d = readSerial(self.serial_port)
-        inText = inText.replace("{TEMP}", d['temp'])
-        inText = inText.replace("{LIGHT}", d['light'])
-        inText = inText.replace("{PRESSURE}", d['pressure'])
+        if self.serial_port:
+            d = readSerial(self.serial_port)
+            inText = inText.replace("{TEMP}", d['temp'])
+            inText = inText.replace("{LIGHT}", d['light'])
+            inText = inText.replace("{PRESSURE}", d['pressure'])
         return inText
 
 def main():
+    if len(sys.argv) < 2:
+        print "Please provide the serial port to read!"
+        print "Running without reading the serial port, will not display live data"
+        serial_port = None
+    else:
+        serial_port = sys.argv[1]
+
     signal.signal(signal.SIGINT, signal_handler)
     handler = GetHandler
-    handler.serial_port = '/dev/tty.usbmodem1411'
+    handler.serial_port = serial_port
     httpd = SocketServer.TCPServer(("", PORT), handler)
     print "serving at port", PORT
     httpd.serve_forever()
